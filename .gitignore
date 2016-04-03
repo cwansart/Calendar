@@ -1,0 +1,10 @@
+/vendor
+/node_modules
+/public/storage
+/storage
+Homestead.yaml
+Homestead.json
+.env
+.idea
+
+database/seeds/UsersTableSeeder.php
