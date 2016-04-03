@@ -44,5 +44,21 @@ class HomeController extends Controller
         return redirect('/')
             ->with('message', 'Neues Passwort wurde gespeichert.');
     }
+
+    public function getReceiveMail()
+    {
+        $receiveMailSettings = (boolean) Auth::user()->receive_mail;
+        return view('receiveMail')
+            ->with('receiveMailSettings', $receiveMailSettings);
+    }
+
+    public function storeReceiveMail(Request $request)
+    {
+        $user = Auth::user();
+        $user->receive_mail = $request->get('receive_mail');
+        $user->save();
+        return redirect('/')
+            ->with('message', 'Benachrichtigungs-Einstellungen wurden gespeichert.');
+    }
     
 }

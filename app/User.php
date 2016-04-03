@@ -41,4 +41,9 @@ class User extends Authenticatable
         }
         return json_encode($colors);
     }
+
+    public function scopeReceiveMail($query)
+    {
+        return $query->where('receive_mail', '=', true);
+    }
 }

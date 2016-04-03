@@ -19,6 +19,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('change_password', 'HomeController@getChangePassword');
     Route::post('change_password', 'HomeController@storeChangePassword');
 
+    Route::get('receive_mail', 'HomeController@getReceiveMail');
+    Route::post('receive_mail', 'HomeController@storeReceiveMail');
+
     Route::get('/calendar', 'CalendarController@index');
     Route::get('/calendar/{year}/{month}/{day}', 'CalendarController@get');
     Route::get('/calendar/{year?}/{month?}', 'CalendarController@index');

@@ -3,12 +3,14 @@
 namespace Calendar\Http\Controllers;
 
 use Calendar\Appointment;
+use Calendar\User;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 
 use Calendar\Http\Requests;
 use Calendar\Http\Requests\AppointmentRequest;
 use Auth;
+use Mail;
+
 
 class AppointmentController extends Controller
 {
@@ -42,7 +44,21 @@ class AppointmentController extends Controller
     {
         $request['user_id'] = Auth::id();
         $date = Carbon::createFromFormat('d.m.Y H:i', $request->get('date'));
-        Appointment::create($request->all());
+        $appointment = Appointment::create($request->all());
+
+        $receivers = User::receiveMail()->get();
+
+        $icsData = $this->createIcs($appointment->id);
+
+        foreach ($receivers as $user) {
+            Mail::send('emails.reminder', ['user' => $user, 'appointment' => $appointment], function ($m) use ($user, $appointment, $icsData) {
+                $m->from('noreply@evos.ddns.net', 'EVOS-Kalender');
+                $m->attachData($icsData, 'cal'.$appointment->id.'.ics');
+
+                $m->to($user->email, $user->name)->subject('Neuer Termin wurde angelegt');
+            });
+        }
+
         return redirect(url('/calendar/'.$date->year.'/'.$date->month));
     }
 
@@ -95,25 +111,37 @@ class AppointmentController extends Controller
 
     public function getIcs($id)
     {
-        $appointment = Appointment::findOrFail($id);
-        $ics = "BEGIN:VCALENDAR\n".
-               "VERSION:2.0\n".
-               "PROID:".url('appointments/'.$id)."\n".
-               "UID:".$id."@cal\n".
-               "METHOD:REQUEST\n".
-               "BEGIN:VEVENT\n".
-               "SUMMARY:".$appointment->title."\n".
-               "DESCRIPTION:".$appointment->content."\n".
-               "CLASS:PUBLIC\n".
-               "DTSTART:".$appointment->icsDate."Z\n".
-               "DTEND:".$appointment->icsDate."Z\n".
-               "DTSTAMP:".$appointment->icsDate."Z\n".
-               "END:VEVENT\n".
-               "END:VCALENDAR";
+        $ics = $this->createIcs($id);
 
         return response()->make($ics)
             ->header('Content-type', 'text/calendar; charset=utf-8')
             ->header('Content-disposition', 'attachment; filename="cal'.$id.'.ics"');
+    }
+
+    /**
+     * Creates an .ics file and returns it as a string.
+     *
+     * @param $id appointment id
+     * @return string ics file
+     */
+    public function createIcs($id)
+    {
+        $appointment = Appointment::findOrFail($id);
+        $ics = "BEGIN:VCALENDAR\n" .
+            "VERSION:2.0\n" .
+            "PROID:" . url('appointments/' . $id) . "\n" .
+            "UID:" . $id . "@cal\n" .
+            "METHOD:REQUEST\n" .
+            "BEGIN:VEVENT\n" .
+            "SUMMARY:" . $appointment->title . "\n" .
+            "DESCRIPTION:" . $appointment->content . "\n" .
+            "CLASS:PUBLIC\n" .
+            "DTSTART:" . $appointment->icsDate . "Z\n" .
+            "DTEND:" . $appointment->icsDate . "Z\n" .
+            "DTSTAMP:" . $appointment->icsDate . "Z\n" .
+            "END:VEVENT\n" .
+            "END:VCALENDAR";
+        return $ics;
     }
 
 }
