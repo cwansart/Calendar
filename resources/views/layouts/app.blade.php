@@ -96,6 +96,7 @@
 
                             <ul class="dropdown-menu" role="menu">
                                 <li><a href="{{ url('/change_password') }}"><i class="fa fa-key fa-fw"></i>Passwort ändern</li>
+                                <li><a href="{{ url('/receive_mail') }}"><i class="fa fa-bell-o"></i>Benachrichtigungen ändern</li>
                                 <li><a href="{{ url('/logout') }}"><i class="fa fa-btn fa-sign-out"></i>Logout</a></li>
                             </ul>
                         </li>
